@@ -10,6 +10,7 @@ public class Gun : MonoBehaviour
     [SerializeField] private new Camera camera;
     [SerializeField] private ParticleSystem flash;
     [SerializeField] private EGunType type = EGunType.Manual;
+    [SerializeField] private AmmoManager ammo;
 
     // Update is called once per frame
     void Update()
@@ -39,6 +40,7 @@ public class Gun : MonoBehaviour
     private void Shoot()
     {
         flash.Play();
+        ammo.Shoot();
 
         if (Physics.Raycast(camera.transform.position, camera.transform.forward, out RaycastHit hit, range))
         {
