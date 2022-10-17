@@ -10,6 +10,9 @@ public class Enemy : MonoBehaviour
     private GameObject[] players;
     private Transform target;
     private NavMeshAgent agent;
+    [SerializeField]
+    private GameObject hitCheck;
+    private Melee melee;
     private readonly float lookDistance = 10f;
     private bool isLocked;
 
@@ -18,7 +21,11 @@ public class Enemy : MonoBehaviour
     {
         players = GameObject.FindGameObjectsWithTag("Player");
         agent = GetComponent<NavMeshAgent>();
+
         isLocked = false;
+
+        hitCheck.SetActive(false);
+        melee = hitCheck.GetComponent<Melee>();
     }
 
     // Update is called once per frame
@@ -33,20 +40,33 @@ public class Enemy : MonoBehaviour
         if (isLocked)
             agent.SetDestination(target.position);
 
-        if (agent.remainingDistance != 0 && agent.remainingDistance <= agent.stoppingDistance)
-        {
-            HasCollided();
-        }
+        if (agent.remainingDistance != 0 && agent.remainingDistance <= melee.HitDistance)
+            Attack();
     }
 
-    private void HasCollided()
+    private void FaceTarget()
     {
-        var health = target.GetComponent<PlayerHealth>();
+        Vector3 lookPosition = target.transform.position - transform.position;
+        lookPosition.y = 1;
 
-        if (health is not null)
-        {
-            health.TakeDamage(10);
-        }
+        Quaternion rotation = Quaternion.LookRotation(lookPosition);
+        transform.rotation = Quaternion.Slerp(transform.rotation, rotation, 10 * Time.deltaTime);
+    }
+
+    private void Attack()
+    {
+        FaceTarget();
+
+        StartCoroutine(AttackCoroutine());
+    }
+
+    private IEnumerator AttackCoroutine()
+    {
+        hitCheck.SetActive(true);
+
+        yield return new WaitForSeconds(melee.Cooldown);
+
+        hitCheck.SetActive(false);
     }
 
     private void FindClosestPlayer()
